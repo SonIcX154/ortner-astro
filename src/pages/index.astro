@@ -1,16 +1,178 @@
 ---
+import { getPages } from '../lib/wordpress';
+import type { WPPage } from '../types/wordpress';
 
+// Fetch all pages from WordPress at build time
+let pages: WPPage[] = [];
+let error: string | null = null;
+
+try {
+  pages = await getPages();
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Failed to fetch pages from WordPress';
+  console.error('Error fetching WordPress pages:', e);
+}
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Portfolio - Christine Ortner</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        color: #7f8c8d;
+      }
+
+      .pages-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .page-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+
+      .page-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .page-card h2 {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .page-card .excerpt {
+        color: #7f8c8d;
+        font-size: 0.95rem;
+      }
+
+      .error {
+        background-color: #fee;
+        border: 1px solid #fcc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        color: #c33;
+        text-align: center;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #7f8c8d;
+      }
+
+      .empty-state p {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+      }
+
+      .empty-state code {
+        background: #f0f0f0;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Christine Ortner</h1>
+        <p class="subtitle">Portfolio</p>
+      </header>
+
+      <main>
+        {error && (
+          <div class="error">
+            <strong>Error loading content:</strong> {error}
+            <p style="margin-top: 1rem; font-size: 0.9rem;">
+              Make sure WordPress is running at <code>{import.meta.env.WORDPRESS_API_URL}</code>
+            </p>
+          </div>
+        )}
+
+        {!error && pages.length === 0 && (
+          <div class="empty-state">
+            <p>No pages found in WordPress yet.</p>
+            <p>
+              Create some pages in your WordPress admin panel at <code>cms.ortner-christine.at</code>
+            </p>
+          </div>
+        )}
+
+        {!error && pages.length > 0 && (
+          <div class="pages-grid">
+            {pages.map((page) => (
+              <a href={`/page/${page.slug}`} class="page-card">
+                <h2 set:html={page.title.rendered} />
+                {page.excerpt.rendered && (
+                  <div class="excerpt" set:html={page.excerpt.rendered} />
+                )}
+              </a>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <footer>
+        <p>Content managed via WordPress CMS</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+          Built with <a href="https://astro.build" target="_blank" rel="noopener">Astro</a>
+        </p>
+      </footer>
+    </div>
+  </body>
 </html>
