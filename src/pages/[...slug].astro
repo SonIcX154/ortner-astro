@@ -11,11 +11,17 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 const page = await getWPPage(slug);
+const pageData = page[0];
+
+// Extract SEO data
+const title = pageData?.title.rendered || slug;
+const description = pageData?.excerpt?.rendered?.replace(/<[^>]*>/g, '').slice(0, 160) || '';
+const featuredImage = pageData?._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
 ---
-<Layout title={page[0]?.title.rendered || slug}>
+<Layout title={title} description={description} image={featuredImage}>
   <article class="page-content">
-    <h1>{page[0]?.title.rendered || 'Seite'}</h1>
-    <div set:html={page[0]?.content.rendered || '<p>Inhalt wird von WordPress geladen...</p>'} />
+    <h1>{title}</h1>
+    <div set:html={pageData?.content.rendered || '<p>Inhalt wird von WordPress geladen...</p>'} />
   </article>
 </Layout>
 
