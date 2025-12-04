@@ -1,0 +1,30 @@
+---
+import { getWPPages } from '../lib/wp-client';
+
+const pages = await getWPPages();
+---
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Christine Ortner</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/">Home</a>
+    {pages.map((page) => (
+      <a href={`/${page.slug}`}>{page.title.rendered}</a>
+    ))}
+  </nav>
+  
+  <main>
+    <slot />
+  </main>
+  
+  <footer>
+    <p>&copy; 2025 Christine Ortner | <a href="/impressum">Impressum</a></p>
+  </footer>
+</body>
+</html>
