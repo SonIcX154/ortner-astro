@@ -1,7 +1,15 @@
 ---
 import { getWPPages } from '../lib/wp-client';
+import SEO from '../components/SEO.astro';
 import '../styles/global.css';
 
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title = 'Christine Ortner', description, image } = Astro.props;
 const pages = await getWPPages();
 ---
 <!doctype html>
@@ -9,7 +17,7 @@ const pages = await getWPPages();
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width" />
-  <title>Christine Ortner</title>
+  <SEO title={title} description={description} image={image} />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 </head>
 <body>
