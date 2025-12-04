@@ -1,0 +1,108 @@
+---
+import Layout from '../../layouts/MainLayout.astro';
+import { getWPPosts } from '../../lib/wp-client';
+
+const posts = await getWPPosts();
+---
+<Layout title="Blog" description="Neueste Beiträge von Christine Ortner">
+  <section class="blog-list">
+    <h1>Blog</h1>
+    
+    <div class="posts-grid">
+      {posts.map((post) => {
+        const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+        const date = new Date(post.date).toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+        const excerpt = post.excerpt.rendered.replace(/<[^>]*>/g, '').slice(0, 120) + '...';
+        
+        return (
+          <article class="post-card">
+            {featuredImage && (
+              <a href={`/blog/${post.slug}`}>
+                <img src={featuredImage} alt={post.title.rendered} class="post-thumbnail" />
+              </a>
+            )}
+            <div class="post-content">
+              <h2>
+                <a href={`/blog/${post.slug}`}>{post.title.rendered}</a>
+              </h2>
+              <p class="post-date">{date}</p>
+              <p class="post-excerpt">{excerpt}</p>
+              <a href={`/blog/${post.slug}`} class="read-more">Weiterlesen →</a>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .blog-list {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  
+  .post-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  
+  .post-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .post-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .post-content {
+    padding: 1.5rem;
+  }
+  
+  .post-content h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+  }
+  
+  .post-content h2 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  
+  .post-content h2 a:hover {
+    color: var(--primary);
+  }
+  
+  .post-date {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0 0 1rem;
+  }
+  
+  .post-excerpt {
+    color: var(--text);
+    line-height: 1.6;
+  }
+  
+  .read-more {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .read-more:hover {
+    color: var(--primary-dark);
+  }
+</style>
