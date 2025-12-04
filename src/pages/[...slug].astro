@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/MainLayout.astro';
+import { getWPPages, getWPPage } from '../lib/wp-client';
+
+export async function getStaticPaths() {
+  const pages = await getWPPages();
+  return pages.map(page => ({
+    params: { slug: page.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const page = await getWPPage(slug);
+---
+<Layout title={page[0]?.title.rendered || slug}>
+  <article class="page-content">
+    <h1>{page[0]?.title.rendered || 'Seite'}</h1>
+    <div set:html={page[0]?.content.rendered || '<p>Inhalt wird von WordPress geladen...</p>'} />
+  </article>
+</Layout>
+
+<style>
+  .page-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+</style>
