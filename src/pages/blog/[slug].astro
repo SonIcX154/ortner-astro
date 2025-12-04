@@ -1,0 +1,68 @@
+---
+import Layout from '../../layouts/MainLayout.astro';
+import { getWPPosts, getWPPost } from '../../lib/wp-client';
+
+export async function getStaticPaths() {
+  const posts = await getWPPosts();
+  return posts.map(post => ({
+    params: { slug: post.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const post = await getWPPost(slug);
+const postData = post[0];
+
+// Extract SEO data
+const title = postData?.title.rendered || slug;
+const description = postData?.excerpt?.rendered?.replace(/<[^>]*>/g, '').slice(0, 160) || '';
+const featuredImage = postData?._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+const author = postData?._embedded?.author?.[0]?.name || 'Christine Ortner';
+const date = postData?.date ? new Date(postData.date).toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+---
+<Layout title={title} description={description} image={featuredImage}>
+  <article class="blog-post">
+    <header>
+      <h1>{title}</h1>
+      <div class="meta">
+        <span>Von {author}</span>
+        {date && <span> • {date}</span>}
+      </div>
+    </header>
+    
+    {featuredImage && (
+      <img src={featuredImage} alt={title} class="featured-image" />
+    )}
+    
+    <div class="content" set:html={postData?.content.rendered || '<p>Blog-Beitrag wird geladen...</p>'} />
+  </article>
+</Layout>
+
+<style>
+  .blog-post {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  header {
+    margin-bottom: 2rem;
+  }
+  
+  .meta {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .featured-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+  
+  .content {
+    line-height: 1.8;
+  }
+</style>
