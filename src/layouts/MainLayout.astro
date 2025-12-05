@@ -1,7 +1,8 @@
 ---
-import { getWPPages } from '../lib/wp-client';
+import { getPages } from '../lib/wordpress';
 import SEO from '../components/SEO.astro';
 import '../styles/global.css';
+import type { WPPage } from '../types/wordpress';
 
 interface Props {
   title?: string;
@@ -10,7 +11,13 @@ interface Props {
 }
 
 const { title = 'Christine Ortner', description, image } = Astro.props;
-const pages = await getWPPages();
+let pages: WPPage[] = [];
+try {
+  pages = await getPages();
+} catch (error) {
+  console.error('Error fetching pages for navigation:', error);
+  pages = [];
+}
 ---
 <!doctype html>
 <html lang="de">

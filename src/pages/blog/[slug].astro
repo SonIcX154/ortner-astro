@@ -1,17 +1,21 @@
 ---
 import Layout from '../../layouts/MainLayout.astro';
-import { getWPPosts, getWPPost } from '../../lib/wp-client';
+import { getPosts, getPostBySlug, getFeaturedImageUrl, getExcerpt } from '../../lib/wordpress';
 
 export async function getStaticPaths() {
-  const posts = await getWPPosts();
-  return posts.map(post => ({
-    params: { slug: post.slug },
-  }));
+  try {
+    const posts = await getPosts();
+    return posts.map(post => ({
+      params: { slug: post.slug },
+    }));
+  } catch (error) {
+    console.error('Error fetching posts for static paths:', error);
+    return [];
+  }
 }
 
 const { slug } = Astro.params;
-const post = await getWPPost(slug);
-const postData = post[0];
+const postData = await getPostBySlug(slug);
 
 // Extract SEO data
 const title = postData?.title.rendered || slug;

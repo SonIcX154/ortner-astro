@@ -1,8 +1,15 @@
 ---
 import Layout from '../../layouts/MainLayout.astro';
-import { getWPPosts } from '../../lib/wp-client';
+import { getPosts } from '../../lib/wordpress';
+import type { WPPost } from '../../types/wordpress';
 
-const posts = await getWPPosts();
+let posts: WPPost[] = [];
+try {
+  posts = await getPosts();
+} catch (error) {
+  console.error('Error fetching posts:', error);
+  posts = [];
+}
 ---
 <Layout title="Blog" description="Neueste Beiträge von Christine Ortner">
   <section class="blog-list">

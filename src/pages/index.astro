@@ -1,13 +1,17 @@
 ---
 import Layout from '../layouts/MainLayout.astro';
-import { getWPPage } from '../lib/wp-client';
+import { getPageBySlug, getFeaturedImageUrl, getExcerpt } from '../lib/wordpress';
 
-const home = await getWPPage('home') || [{ title: { rendered: 'Willkommen' }, content: { rendered: '<h1>Christine Ortner</h1><p>Die Inhalte kommen von WordPress...</p>' } }];
+const home = await getPageBySlug('home');
+const fallback = { title: { rendered: 'Willkommen' }, content: { rendered: '<h1>Christine Ortner</h1><p>Die Inhalte kommen von WordPress...</p>' }, excerpt: { rendered: '' } };
+const pageData = home || fallback;
+const featuredImage = getFeaturedImageUrl(pageData as any) || undefined;
+const description = getExcerpt(pageData as any, 160);
 ---
-<Layout title={home[0].title.rendered}>
+<Layout title={pageData.title.rendered} description={description} image={featuredImage}>
   <section class="hero">
-    <h1>{home[0].title.rendered}</h1>
-    <div set:html={home[0].content.rendered} />
+    <h1>{pageData.title.rendered}</h1>
+    <div set:html={pageData.content.rendered} />
   </section>
 </Layout>
 

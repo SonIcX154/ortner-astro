@@ -164,21 +164,39 @@ const pages = await getPages();
 
 ## Deployment
 
-### Build the Site
+### Quick Deploy (Local Build + Upload)
 
-```bash
-npm run build
-```
+1. **Build the site**:
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to your server** (see deployment options below)
 
 ### Deploy Options
 
 The `dist/` folder can be deployed to:
 
+- **QNAP NAS**: See [DEPLOYMENT_QNAP.md](DEPLOYMENT_QNAP.md) for detailed QNAP-specific instructions
 - **Netlify**: Drag & drop or connect Git repository
 - **Vercel**: Connect Git repository
 - **GitHub Pages**: Upload to repository
 - **Traditional Hosting**: Upload via FTP/SFTP
 - **CDN**: CloudFlare Pages, AWS S3 + CloudFront, etc.
+
+### QNAP NAS Deployment (Recommended for your setup)
+
+For same-server WordPress + Astro on QNAP NAS:
+
+1. **Enable SSH access** on your QNAP
+2. **Install Web Server** from App Center
+3. **Use the automated script**:
+   ```bash
+   npm run build
+   ./deploy.sh your-nas-ip admin /share/Web/portfolio
+   ```
+
+See [DEPLOYMENT_QNAP.md](DEPLOYMENT_QNAP.md) for complete setup instructions.
 
 ### Automatic Rebuilds
 
