@@ -3,7 +3,8 @@
 # Deployment script for QNAP NAS
 # Usage: ./deploy.sh [nas-ip] [username] [web-root-path]
 
-set -e
+set -e  # Exit on error
+set -u  # Exit on undefined variable
 
 # Configuration
 NAS_IP=${1:-"your-nas-ip"}
@@ -14,13 +15,19 @@ BUILD_DIR="dist"
 echo "🚀 Deploying Astro site to QNAP NAS"
 echo "======================================"
 
-# Check if build exists
+# Build first if dist doesn't exist or is old
 if [ ! -d "$BUILD_DIR" ]; then
-    echo "❌ Build directory '$BUILD_DIR' not found. Run 'npm run build' first."
-    exit 1
+    echo "📦 Building Astro site..."
+    npm run build || { echo "❌ Build failed! Fix errors and try again."; exit 1; }
+    echo "✅ Build completed successfully"
+else
+    echo "📦 Using existing build: $BUILD_DIR"
+    read -p "⚠️  Rebuild first? (y/N): " rebuild
+    if [[ $rebuild =~ ^[Yy]$ ]]; then
+        npm run build || { echo "❌ Build failed! Fix errors and try again."; exit 1; }
+        echo "✅ Build completed successfully"
+    fi
 fi
-
-echo "📦 Build directory found: $BUILD_DIR"
 
 # Test connection
 echo "🔍 Testing connection to NAS..."
@@ -37,16 +44,21 @@ echo "✅ NAS connection successful"
 
 # Create backup on NAS
 echo "💾 Creating backup on NAS..."
-ssh "$NAS_USER@$NAS_IP" "cd '$WEB_ROOT' && [ -d 'current' ] && cp -r current backup-$(date +%Y%m%d_%H%M%S) || echo 'No existing site to backup'"
+ssh "$NAS_USER@$NAS_IP" "cd '$WEB_ROOT' && [ -d 'current' ] && cp -r current backup-\$(date +%Y%m%d_%H%M%S) || echo 'No existing site to backup'"
 
 # Upload new build
 echo "📤 Uploading new build to NAS..."
-rsync -avz --delete "$BUILD_DIR/" "$NAS_USER@$NAS_IP:$WEB_ROOT/current/"
+rsync -avz --delete "$BUILD_DIR/" "$NAS_USER@$NAS_IP:$WEB_ROOT/current/" || { 
+    echo "❌ Upload failed! Rolling back..."
+    ssh "$NAS_USER@$NAS_IP" "cd '$WEB_ROOT' && rm -rf current && mv backup-* current 2>/dev/null || true"
+    exit 1
+}
 
 # Set proper permissions
 echo "🔒 Setting proper permissions..."
 ssh "$NAS_USER@$NAS_IP" "find '$WEB_ROOT/current' -type f -name '*.html' -exec chmod 644 {} \; && find '$WEB_ROOT/current' -type f -name '*.css' -o -name '*.js' -exec chmod 644 {} \; && find '$WEB_ROOT/current' -type d -exec chmod 755 {} \;"
 
+echo ""
 echo "✅ Deployment completed successfully!"
 echo ""
 echo "🌐 Your site should now be available at:"
@@ -57,3 +69,6 @@ echo "📝 Next steps:"
 echo "   1. Verify the site loads correctly"
 echo "   2. Update your DNS if needed"
 echo "   3. Configure SSL certificate if required"
+echo ""
+echo "💡 Tip: Add this to your crontab for auto-deploy:"
+echo "   0 2 * * * cd /path/to/ortner-astro && ./deploy.sh"
