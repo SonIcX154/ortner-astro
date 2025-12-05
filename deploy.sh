@@ -7,9 +7,9 @@ set -e  # Exit on error
 set -u  # Exit on undefined variable
 
 # Configuration
-NAS_IP=${1:-"your-nas-ip"}
-NAS_USER=${2:-"admin"}
-WEB_ROOT=${3:-"/share/Web/portfolio"}
+NAS_IP=${1:-"192.168.1.200"}
+NAS_USER=${2:-"astro"}
+WEB_ROOT=${3:-"/Web/Astro"}
 BUILD_DIR="dist"
 
 echo "🚀 Deploying Astro site to QNAP NAS"
