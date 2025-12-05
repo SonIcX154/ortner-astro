@@ -186,27 +186,56 @@ export function getFeaturedImageUrl(
  * Helper to strip HTML tags from content
  */
 export function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .trim();
 }
 
 /**
- * Helper to truncate text
+ * Helper to truncate text intelligently (avoid cutting words)
  */
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) {
     return text;
   }
+  
+  // Try to cut at sentence boundary
+  const cutAt = text.lastIndexOf('.', maxLength);
+  if (cutAt > maxLength * 0.7) {
+    return text.substring(0, cutAt + 1).trim();
+  }
+  
+  // Otherwise cut at word boundary
+  const lastSpace = text.lastIndexOf(' ', maxLength);
+  if (lastSpace > maxLength * 0.7) {
+    return text.substring(0, lastSpace).trim() + '...';
+  }
+  
+  // Fallback: hard cut
   return text.substring(0, maxLength).trim() + '...';
 }
 
 /**
- * Helper to get excerpt from page/post
+ * Helper to get excerpt from page/post with smart truncation
  */
 export function getExcerpt(
   item: WPPage | WPPost,
-  maxLength: number = 200
+  maxLength: number = 155  // Google meta description sweet spot
 ): string {
-  const excerpt = item.excerpt.rendered;
-  const stripped = stripHtml(excerpt).trim();
+  // Try excerpt first
+  let text = item.excerpt?.rendered || '';
+  
+  // Fallback to content if no excerpt
+  if (!text.trim()) {
+    text = item.content?.rendered || '';
+  }
+  
+  const stripped = stripHtml(text);
   return truncateText(stripped, maxLength);
 }
